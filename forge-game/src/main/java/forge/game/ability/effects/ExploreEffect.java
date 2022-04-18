@@ -86,7 +86,7 @@ public class ExploreEffect extends SpellAbilityEffect {
                 Card gamec = game.getCardState(c);
                 // if the card is not more in the game anymore
                 // this might still return true but its no problem
-                if (game.getZoneOf(gamec).is(ZoneType.Battlefield) && gamec.equalsWithTimestamp(c)) {
+                if (game.getZoneOf(gamec).is(ZoneType.Battlefield) && gamec.equalsWithGameTimestamp(c)) {
                     c.addCounter(CounterEnumType.P1P1, 1, pl, table);
                 }
             }

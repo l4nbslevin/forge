@@ -253,7 +253,8 @@ public class Card extends GameEntity implements Comparable<Card>, IHasSVars {
     private int exertThisTurn = 0;
     private PlayerCollection exertedByPlayer = new PlayerCollection();
 
-    private long timestamp = -1; // permanents on the battlefield
+    private long gameTimestamp = -1;
+    private long layerTimestamp = -1; // permanents on the battlefield
 
     // stack of set power/toughness
     // x=timestamp y=StaticAbility id
@@ -3514,7 +3515,7 @@ public class Card extends GameEntity implements Comparable<Card>, IHasSVars {
 
         // They use double links... it's doubtful
         setEntityAttachedTo(entity);
-        setTimestamp(getGame().getNextTimestamp());
+        setLayerTimestamp(getGame().getNextTimestamp());
         entity.addAttachedCard(this);
 
         // Play the Equip sound
@@ -5820,16 +5821,23 @@ public class Card extends GameEntity implements Comparable<Card>, IHasSVars {
         bestowTimestamp = t;
     }
 
-    public final long getTimestamp() {
-        return timestamp;
+    public final long getGameTimestamp() {
+        return gameTimestamp;
     }
-    public final void setTimestamp(final long t) {
-        timestamp = t;
+    public final void setGameTimestamp(final long t) {
+        gameTimestamp = t;
+        layerTimestamp = t;
     }
-    public boolean equalsWithTimestamp(Card c) {
-        return equals(c) && c.getTimestamp() == timestamp;
+    public boolean equalsWithGameTimestamp(Card c) {
+        return equals(c) && c.getGameTimestamp() == gameTimestamp;
     }
 
+    public final long getLayerTimestamp() {
+        return layerTimestamp;
+    }
+    public final void setLayerTimestamp(final long t) {
+        layerTimestamp = t;
+    }
     /**
      * Assign a random foil finish depending on the card edition.
      */
@@ -6737,10 +6745,10 @@ public class Card extends GameEntity implements Comparable<Card>, IHasSVars {
 
     public void cleanupCopiedChangesFrom(Card c) {
         for (StaticAbility stAb : c.getStaticAbilities()) {
-            this.removeChangedCardTypes(c.getTimestamp(), stAb.getId(), false);
-            this.removeColor(c.getTimestamp(), stAb.getId());
-            this.removeChangedCardKeywords(c.getTimestamp(), stAb.getId(), false);
-            this.removeChangedCardTraits(c.getTimestamp(), stAb.getId());
+            this.removeChangedCardTypes(c.getLayerTimestamp(), stAb.getId(), false);
+            this.removeColor(c.getLayerTimestamp(), stAb.getId());
+            this.removeChangedCardKeywords(c.getLayerTimestamp(), stAb.getId(), false);
+            this.removeChangedCardTraits(c.getLayerTimestamp(), stAb.getId());
         }
     }
 

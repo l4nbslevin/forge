@@ -255,7 +255,7 @@ public class GameAction {
             }
 
             if (!suppress) {
-                copied.setTimestamp(game.getNextTimestamp());
+                copied.setGameTimestamp(game.getNextTimestamp());
             }
 
             if (!lastKnownInfo.hasKeyword("Counters remain on CARDNAME as it moves to any zone other than a player's hand or library.")) {
@@ -289,7 +289,7 @@ public class GameAction {
                 copied.setDrawnThisTurn(c.getDrawnThisTurn());
 
                 copied.copyChangedTextFrom(c);
-                copied.setTimestamp(c.getTimestamp());
+                copied.setGameTimestamp(c.getGameTimestamp());
 
                 // clean up changes that come from its own static abilities
                 copied.cleanupCopiedChangesFrom(c);
@@ -309,7 +309,7 @@ public class GameAction {
                 copied.setBackSide(false);
 
                 // reset timestamp in changezone effects so they have same timestamp if ETB simultaneously
-                copied.setTimestamp(game.getNextTimestamp());
+                copied.setGameTimestamp(game.getNextTimestamp());
             }
 
             copied.setUnearthed(c.isUnearthed());
@@ -1102,7 +1102,7 @@ public class GameAction {
             public int compare(final StaticAbility a, final StaticAbility b) {
                 return ComparisonChain.start()
                         .compareTrueFirst(a.hasParam("CharacteristicDefining"), b.hasParam("CharacteristicDefining"))
-                        .compare(a.getHostCard().getTimestamp(), b.getHostCard().getTimestamp())
+                        .compare(a.getHostCard().getLayerTimestamp(), b.getHostCard().getLayerTimestamp())
                         .result();
             }
         };
@@ -1293,7 +1293,7 @@ public class GameAction {
                             int sum = damaged.getRight();
                             remainingDamaged.remove(damaged);
                             for (Pair<Card, Integer> other : Lists.newArrayList(remainingDamaged)) {
-                                if (other.getLeft().equalsWithTimestamp(damaged.getLeft())) {
+                                if (other.getLeft().equalsWithGameTimestamp(damaged.getLeft())) {
                                     sum += other.getRight();
                                     // once it got counted keep it out
                                     remainingDamaged.remove(other);
@@ -1734,7 +1734,7 @@ public class GameAction {
         long ts = 0;
 
         for (final Card crd : worlds) {
-            long crdTs = crd.getTimestamp();
+            long crdTs = crd.getGameTimestamp();
             if (crdTs > ts) {
                 ts = crdTs;
                 toKeep.clear();

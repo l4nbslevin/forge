@@ -150,7 +150,7 @@ public class CardProperty {
             for (Object o : spellAbility.getTriggerRemembered()) {
                 if (o instanceof Card) {
                     Card trigRem = (Card) o;
-                    if (trigRem.equalsWithTimestamp(card)) {
+                    if (trigRem.equalsWithGameTimestamp(card)) {
                         found = true;
                         break;
                     }
@@ -336,7 +336,7 @@ public class CardProperty {
                 return false;
             }
         } else if (property.startsWith("StrictlySelf")) {
-            if (!card.equalsWithTimestamp(source)) {
+            if (!card.equalsWithGameTimestamp(source)) {
                 return false;
             }
         } else if (property.startsWith("Self")) {
@@ -936,7 +936,7 @@ public class CardProperty {
 
                     if (list.size() == 1) {
                         Card c = list.getFirst();
-                        if (c.getTimestamp() == card.getTimestamp() && c.getId() == card.getId()) {
+                        if (c.equalsWithGameTimestamp(card)) {
                             list.remove(card);
                         }
                     }
