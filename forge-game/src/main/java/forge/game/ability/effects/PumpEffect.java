@@ -273,11 +273,9 @@ public class PumpEffect extends SpellAbilityEffect {
             keywords = CardFactoryUtil.sharedKeywords(keywords, restrictions, zones, sa.getHostCard(), sa);
         }
 
-        List<GameEntity> tgts = Lists.newArrayList();
         List<Card> tgtCards = getCardsfromTargets(sa);
         List<Player> tgtPlayers = getTargetPlayers(sa);
-        tgts.addAll(tgtCards);
-        tgts.addAll(tgtPlayers);
+
         final CardCollection untargetedCards = CardUtil.getRadiance(sa);
 
         if (sa.hasParam("DefinedKW")) {
@@ -391,11 +389,6 @@ public class PumpEffect extends SpellAbilityEffect {
                 continue;
             }
 
-            // if pump is a target, make sure we can still target now
-            if (sa.usesTargeting() && !tgtC.canBeTargetedBy(sa)) {
-                continue;
-            }
-
             // substitute specific tgtC mana cost for keyword placeholder CardManaCost
             List<String> affectedKeywords = Lists.newArrayList(keywords);
 
@@ -444,7 +437,7 @@ public class PumpEffect extends SpellAbilityEffect {
         }
 
         for (Player p : tgtPlayers) {
-            if (!p.canBeTargetedBy(sa)) {
+            if (!p.isInGame()) {
                 continue;
             }
 

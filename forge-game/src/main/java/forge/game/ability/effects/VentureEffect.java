@@ -43,6 +43,7 @@ public class VentureEffect  extends SpellAbilityEffect {
         }
 
         // Create a new dungeon card chosen by player in command zone.
+        // TODO restrict Dungeon to Format Only cards?
         List<PaperCard> dungeonCards = StaticData.instance().getVariantCards().getAllCards(
             Predicates.compose(CardRulesPredicates.Presets.IS_DUNGEON, PaperCard.FN_GET_RULES));
 
@@ -122,9 +123,10 @@ public class VentureEffect  extends SpellAbilityEffect {
         moveParams.put(AbilityKey.LastStateGraveyard, sa.getLastStateGraveyard());
 
         for (final Player p : getTargetPlayers(sa)) {
-            if (!sa.usesTargeting() || p.canBeTargetedBy(sa)) {
-                ventureIntoDungeon(sa, p, moveParams);
+            if (!p.isInGame()) {
+               continue; 
             }
+            ventureIntoDungeon(sa, p, moveParams);
         }
     }
 

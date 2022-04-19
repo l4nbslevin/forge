@@ -6,7 +6,6 @@ import forge.game.ability.SpellAbilityEffect;
 import forge.game.card.Card;
 import forge.game.player.Player;
 import forge.game.spellability.SpellAbility;
-import forge.game.zone.ZoneType;
 
 public class GoadEffect extends SpellAbilityEffect {
 
@@ -19,30 +18,33 @@ public class GoadEffect extends SpellAbilityEffect {
 
         for (final Card tgtC : getDefinedCardsOrTargeted(sa)) {
             // only pump things in PumpZone
-            if (!game.getCardsIn(ZoneType.Battlefield).contains(tgtC)) {
+            if (!tgtC.isInPlay()) {
                 continue;
             }
 
-            // if pump is a target, make sure we can still target now
-            if (sa.usesTargeting() && !sa.getTargetRestrictions().canTgtPlayer() && !tgtC.canBeTargetedBy(sa)) {
+            // check if the object is still in game or if it was moved
+            Card gameCard = game.getCardState(tgtC, null);
+            // gameCard is LKI in that case, the card is not in game anymore
+            // or the timestamp did change
+            // this should check Self too
+            if (gameCard == null || !tgtC.equalsWithGameTimestamp(gameCard)) {
                 continue;
             }
-
             // 701.38d is handled by getGoaded
-            tgtC.addGoad(timestamp, player);
+            gameCard.addGoad(timestamp, player);
 
             final GameCommand untilEOT = new GameCommand() {
                 private static final long serialVersionUID = -1731759226844770852L;
 
                 @Override
                 public void run() {
-                    tgtC.removeGoad(timestamp);
+                    gameCard.removeGoad(timestamp);
                 }
             };
 
             game.getCleanup().addUntil(player, untilEOT);
 
-            if (remember && tgtC.isGoaded()) {
+            if (remember && gameCard.isGoaded()) {
                 sa.getHostCard().addRemembered(tgtC);
             }
         }

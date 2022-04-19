@@ -224,8 +224,8 @@ public class CopyPermanentEffect extends TokenEffectBase {
         TokenCreateTable tokenTable = new TokenCreateTable();
 
         for (final Card c : tgtCards) {
-            // if it only targets player, it already got all needed cards from defined
-            if (sa.usesTargeting() && !sa.getTargetRestrictions().canTgtPlayer() && !c.canBeTargetedBy(sa)) {
+            Card gameCard = game.getCardState(c, null);
+            if (gameCard == null || !c.equalsWithGameTimestamp(gameCard)) {
                 continue;
             }
             tokenTable.put(controller, getProtoType(sa, c, controller), numCopies);

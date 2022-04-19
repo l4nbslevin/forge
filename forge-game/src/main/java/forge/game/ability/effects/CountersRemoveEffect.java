@@ -106,29 +106,29 @@ public class CountersRemoveEffect extends SpellAbilityEffect {
         boolean rememberAmount = sa.hasParam("RememberAmount");
 
         for (final Player tgtPlayer : getTargetPlayers(sa)) {
+            if (!tgtPlayer.isInGame()) {
+                continue;
+            }
             // Removing energy
-            if (!sa.usesTargeting() || tgtPlayer.canBeTargetedBy(sa)) {
-                if (type.equals("All")) {
-                    for (Map.Entry<CounterType, Integer> e : Lists.newArrayList(tgtPlayer.getCounters().entrySet())) {
-                        tgtPlayer.subtractCounter(e.getKey(), e.getValue());
-                    }
+            if (type.equals("All")) {
+                for (Map.Entry<CounterType, Integer> e : Lists.newArrayList(tgtPlayer.getCounters().entrySet())) {
+                    tgtPlayer.subtractCounter(e.getKey(), e.getValue());
+                }
+            } else {
+                if (num.equals("All")) {
+                    cntToRemove = tgtPlayer.getCounters(counterType);
+                }
+                if (type.equals("Any")) {
+                    removeAnyType(tgtPlayer, cntToRemove, sa);
                 } else {
-                    if (num.equals("All")) {
-                        cntToRemove = tgtPlayer.getCounters(counterType);
-                    }
-                    if (type.equals("Any")) {
-                        removeAnyType(tgtPlayer, cntToRemove, sa);
-                    } else {
-                        tgtPlayer.subtractCounter(counterType, cntToRemove);
-                    }
+                    tgtPlayer.subtractCounter(counterType, cntToRemove);
                 }
             }
         }
 
-        CardCollectionView srcCards = null;
+        CardCollectionView srcCards;
         if (sa.hasParam("ValidSource")) {
-            srcCards = game.getCardsIn(ZoneType.Battlefield);
-            srcCards = CardLists.getValidCards(srcCards, sa.getParam("ValidSource"), player, card, sa);
+            srcCards = CardLists.getValidCards(game.getCardsIn(ZoneType.Battlefield), sa.getParam("ValidSource"), player, card, sa);
             if (num.equals("Any")) {
                 String title = Localizer.getInstance().getMessage("lblChooseCardsToTakeTargetCounters", counterType.getName());
                 Map<String, Object> params = Maps.newHashMap();
@@ -149,44 +149,43 @@ public class CountersRemoveEffect extends SpellAbilityEffect {
             if (gameCard == null || !tgtCard.equalsWithGameTimestamp(gameCard)) {
                 continue;
             }
-            if (!sa.usesTargeting() || gameCard.canBeTargetedBy(sa)) {
-                final Zone zone = game.getZoneOf(gameCard);
-                if (type.equals("All")) {
-                    for (Map.Entry<CounterType, Integer> e : Lists.newArrayList(gameCard.getCounters().entrySet())) {
-                        gameCard.subtractCounter(e.getKey(), e.getValue());
+
+            final Zone zone = game.getZoneOf(gameCard);
+            if (type.equals("All")) {
+                for (Map.Entry<CounterType, Integer> e : Lists.newArrayList(gameCard.getCounters().entrySet())) {
+                    gameCard.subtractCounter(e.getKey(), e.getValue());
+                }
+                game.updateLastStateForCard(gameCard);
+                continue;
+            } else if (num.equals("All") || num.equals("Any")) {
+                cntToRemove = gameCard.getCounters(counterType);
+            }
+
+            if (type.equals("Any")) {
+                removeAnyType(gameCard, cntToRemove, sa);
+            } else {
+                cntToRemove = Math.min(cntToRemove, gameCard.getCounters(counterType));
+
+                if (zone.is(ZoneType.Battlefield) || zone.is(ZoneType.Exile)) {
+                    if (sa.hasParam("UpTo") || num.equals("Any")) {
+                        Map<String, Object> params = Maps.newHashMap();
+                        params.put("Target", gameCard);
+                        params.put("CounterType", counterType);
+                        String title = Localizer.getInstance().getMessage("lblSelectRemoveCountersNumberOfTarget", type);
+                        cntToRemove = pc.chooseNumber(sa, title, 0, cntToRemove, params);
+                    }
+                }
+                if (cntToRemove > 0) {
+                    gameCard.subtractCounter(counterType, cntToRemove);
+                    if (rememberRemoved) {
+                        for (int i = 0; i < cntToRemove; i++) {
+                            // TODO might need to be more specific
+                            card.addRemembered(Pair.of(counterType, i));
+                        }
                     }
                     game.updateLastStateForCard(gameCard);
-                    continue;
-                } else if (num.equals("All") || num.equals("Any")) {
-                    cntToRemove = gameCard.getCounters(counterType);
-                }
 
-                if (type.equals("Any")) {
-                    removeAnyType(gameCard, cntToRemove, sa);
-                } else {
-                    cntToRemove = Math.min(cntToRemove, gameCard.getCounters(counterType));
-
-                    if (zone.is(ZoneType.Battlefield) || zone.is(ZoneType.Exile)) {
-                        if (sa.hasParam("UpTo") || num.equals("Any")) {
-                            Map<String, Object> params = Maps.newHashMap();
-                            params.put("Target", gameCard);
-                            params.put("CounterType", counterType);
-                            String title = Localizer.getInstance().getMessage("lblSelectRemoveCountersNumberOfTarget", type);
-                            cntToRemove = pc.chooseNumber(sa, title, 0, cntToRemove, params);
-                        }
-                    }
-                    if (cntToRemove > 0) {
-                        gameCard.subtractCounter(counterType, cntToRemove);
-                        if (rememberRemoved) {
-                            for (int i = 0; i < cntToRemove; i++) {
-                                // TODO might need to be more specific
-                                card.addRemembered(Pair.of(counterType, i));
-                            }
-                        }
-                        game.updateLastStateForCard(gameCard);
-
-                        totalRemoved += cntToRemove;
-                    }
+                    totalRemoved += cntToRemove;
                 }
             }
         }

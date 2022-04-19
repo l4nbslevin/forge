@@ -548,7 +548,7 @@ public class Player extends GameEntity implements Comparable<Player> {
     }
 
     public final boolean canGainLife() {
-        return !hasLost() && !StaticAbilityCantGainLosePayLife.anyCantGainLife(this);
+        return isInGame() && !StaticAbilityCantGainLosePayLife.anyCantGainLife(this);
     }
 
     public final int loseLife(int toLose, final boolean damage, final boolean manaBurn) {
@@ -615,7 +615,7 @@ public class Player extends GameEntity implements Comparable<Player> {
     }
 
     public final boolean canLoseLife() {
-        return !hasLost() && !StaticAbilityCantGainLosePayLife.anyCantLoseLife(this);
+        return isInGame() && !StaticAbilityCantGainLosePayLife.anyCantLoseLife(this);
     }
 
     public final boolean canPayLife(final int lifePayment, final boolean effect, SpellAbility cause) {
@@ -2013,6 +2013,10 @@ public class Player extends GameEntity implements Comparable<Player> {
         return getOutcome() != null && getOutcome().lossState == null;
     }
 
+    public final boolean isInGame() {
+        return getOutcome() == null;
+    }
+
     public final boolean hasMetalcraft() {
         return CardLists.count(getCardsIn(ZoneType.Battlefield), CardPredicates.Presets.ARTIFACTS) >= 3;
     }
@@ -2588,10 +2592,7 @@ public class Player extends GameEntity implements Comparable<Player> {
     }
 
     public boolean isSkippingCombat() {
-        if (hasLost()) {
-            return true;
-        }
-        return false;
+        return !isInGame();
     }
 
     public int getStartingHandSize() {
@@ -3443,6 +3444,9 @@ public class Player extends GameEntity implements Comparable<Player> {
     }
 
     public void learnLesson(SpellAbility sa, CardZoneTable table, Map<AbilityKey, Object> params) {
+        if (hasLost()) {
+            return;
+        }
         // Replacement effects
         Map<AbilityKey, Object> repParams = AbilityKey.mapFromAffected(this);
         repParams.put(AbilityKey.Cause, sa);

@@ -1,7 +1,5 @@
 package forge.game.ability.effects;
 
-import java.util.List;
-
 import forge.game.GameEntity;
 import forge.game.ability.AbilityUtils;
 import forge.game.ability.SpellAbilityEffect;
@@ -10,7 +8,6 @@ import forge.game.card.CardCollection;
 import forge.game.player.Player;
 import forge.game.player.PlayerCollection;
 import forge.game.spellability.SpellAbility;
-import forge.game.spellability.TargetRestrictions;
 
 public class MustAttackEffect extends SpellAbilityEffect {
 
@@ -24,8 +21,6 @@ public class MustAttackEffect extends SpellAbilityEffect {
 
         // end standard pre-
 
-        final List<Player> tgtPlayers = getTargetPlayers(sa);
-
         String defender = null;
         if (sa.getParam("Defender").equals("Self")) {
             defender = host.toString();
@@ -33,7 +28,7 @@ public class MustAttackEffect extends SpellAbilityEffect {
             defender = host.getController().toString();
         }
 
-        for (final Player player : tgtPlayers) {
+        for (final Player player : getTargetPlayers(sa)) {
             sb.append("Creatures ").append(player).append(" controls attack ");
             sb.append(defender).append(" during their next turn.");
         }
@@ -47,8 +42,6 @@ public class MustAttackEffect extends SpellAbilityEffect {
 
     @Override
     public void resolve(SpellAbility sa) {
-        final List<Player> tgtPlayers = getTargetPlayers(sa);
-        final TargetRestrictions tgt = sa.getTargetRestrictions();
         final String defender = sa.getParam("Defender");
         final boolean thisTurn = sa.hasParam("ThisTurn");
         GameEntity entity = null;
@@ -68,22 +61,21 @@ public class MustAttackEffect extends SpellAbilityEffect {
         }
 
         // TODO these should not override but add another requirement
-        for (final Player p : tgtPlayers) {
-            if ((tgt == null) || p.canBeTargetedBy(sa)) {
-                if (thisTurn || !p.getGame().getPhaseHandler().isPlayerTurn(p)) {
-                    p.setMustAttackEntityThisTurn(entity);
-                } else {
-                    p.setMustAttackEntity(entity);
-                }
+        for (final Player p : getTargetPlayers(sa)) {
+            if (!p.isInGame()) {
+                continue;
+            }
+            if (thisTurn || !p.getGame().getPhaseHandler().isPlayerTurn(p)) {
+                p.setMustAttackEntityThisTurn(entity);
+            } else {
+                p.setMustAttackEntity(entity);
             }
         }
         for (final Card c : getTargetCards(sa)) {
-            if ((tgt == null) || c.canBeTargetedBy(sa)) {
-                if (thisTurn) {
-                    c.setMustAttackEntityThisTurn(entity);
-                } else {
-                    c.setMustAttackEntity(entity);
-                }
+            if (thisTurn) {
+                c.setMustAttackEntityThisTurn(entity);
+            } else {
+                c.setMustAttackEntity(entity);
             }
         }
     } // mustAttackResolve()

@@ -534,9 +534,6 @@ public class ChangeZoneEffect extends SpellAbilityEffect {
             if (gameCard == null || !tgtC.equalsWithGameTimestamp(gameCard) || gameCard.isPhasedOut()) {
                 continue;
             }
-            if (sa.usesTargeting() && !gameCard.canBeTargetedBy(sa)) {
-                continue;
-            }
             if (sa.hasParam("RememberLKI")) {
                 hostCard.addRemembered(CardUtil.getLKICopy(gameCard));
             }
